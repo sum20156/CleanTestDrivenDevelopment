@@ -21,7 +21,7 @@ import javax.inject.Inject
 class UserListingPageViewModel @Inject constructor(
     private val userRepo: UserRepo,
     private val userListingUseCase: UserListingUseCase
-) :ViewModel() {
+) : ViewModel() {
 
 
     private val _uiStates: MutableStateFlow<UserListingPageUiStates> =
@@ -30,7 +30,7 @@ class UserListingPageViewModel @Inject constructor(
 
     private val _showError: MutableStateFlow<Boolean> =
         MutableStateFlow(false)
-    val showError: StateFlow<Boolean> =_showError
+    val showError: StateFlow<Boolean> = _showError
 
 
     sealed interface UserListingPageUiStates {
@@ -40,29 +40,33 @@ class UserListingPageViewModel @Inject constructor(
     }
 
 
+/*    fun fetchUserListing() {
 
-
-    fun fetchUserListing(){
-        _uiStates.value = UserListingPageUiStates.Loading
-
-        userRepo.getUsersFromLocalFlow().onEach {localData->
-            if (localData.isEmpty().not()){
+        userRepo.getUsersFromLocalFlow().onEach { localData ->
+            if (localData.isEmpty().not()) {
                 _uiStates.value = UserListingPageUiStates.UserListing(localData.toUi())
-            }else{
-                _uiStates.value =UserListingPageUiStates.EmptyState
+            } else {
+                _uiStates.value = UserListingPageUiStates.EmptyState
             }
 
         }.launchIn(viewModelScope)
 
 
-    }
+    }*/
 
-    fun refreshUserListingData(){
+    fun refreshUserListingData() {
         userListingUseCase().onEach {
-            when{
-                it==null->{
+            when {
+                it == null -> {
                     _showError.value = true
                 }
+                it.isEmpty()-> {
+                    _uiStates.value = UserListingPageUiStates.EmptyState
+                }
+                else -> {
+                    _uiStates.value = UserListingPageUiStates.UserListing(it.toUi())
+                }
+
             }
         }.launchIn(viewModelScope)
 

@@ -20,14 +20,12 @@ fun UserListingPageUi(
     viewModel: UserListingPageViewModel
 ) {
 
-
     Box(modifier = Modifier.fillMaxSize()) {
         val uiState = viewModel.uiStates.collectAsState()
         val showError =viewModel.showError.collectAsState()
         ErrorState(showError)
         when(val uiStateValue = uiState.value){
             UserListingPageViewModel.UserListingPageUiStates.Loading->{
-                viewModel.fetchUserListing()
                 viewModel.refreshUserListingData()
                 LoadingState()
             }

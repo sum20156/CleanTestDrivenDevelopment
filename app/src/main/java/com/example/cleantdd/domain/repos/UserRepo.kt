@@ -14,5 +14,9 @@ interface UserRepo {
     fun getUsersFromLocalFlow():Flow<List<UserEntity>>
 
 
+
+    fun getBlockedUsers():List<String>?
+
+
     suspend fun insertUserInLocal(userEntity: UserEntity)
 }

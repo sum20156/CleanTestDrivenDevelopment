@@ -8,4 +8,7 @@ interface ApiService {
 
     @GET("/users")
     fun getUsers(): UserResponse
+
+    @GET("/blockedUsers")
+    fun getBlockedUsers(): List<String>
 }

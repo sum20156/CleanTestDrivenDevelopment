@@ -4,10 +4,16 @@ import com.example.cleantdd.data.apiservice.ApiService
 import com.example.cleantdd.data.db.AppDatabase
 import com.example.cleantdd.data.db.UserDao
 import com.example.cleantdd.data.db.UserEntity
+import com.example.cleantdd.data.db.toEntity
 import com.example.cleantdd.data.models.UserDataModel
 import com.example.cleantdd.data.models.UserResponse
 import com.example.cleantdd.domain.repos.UserRepo
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
 
@@ -22,7 +28,7 @@ class RealUserRepo @Inject constructor(
         cursor = "",
         data = listOf(
             UserDataModel(
-                id = UUID.randomUUID().toString(),
+                id = "test123",
                 name = "John Ram",
                 age = 22,
                 address = "234 vloam, India",
@@ -31,7 +37,7 @@ class RealUserRepo @Inject constructor(
                 photoUrl = "www.sds.com"
             ),
             UserDataModel(
-                id = UUID.randomUUID().toString(),
+                id = "test546",
                 name = "Akash",
                 age = 54,
                 address = "sds4 vloam, India",
@@ -50,8 +56,28 @@ class RealUserRepo @Inject constructor(
        return userDao.getAllUsers()
     }
 
-    override fun getUsersFromLocalFlow(): Flow<List<UserEntity>> {
-        return userDao.getAllUsersFlow()
+    override fun getUsersFromLocalFlow() = userDao.getAllUsersFlow().combine(refreshFromRemote()){list,p->
+        list
+    }
+
+    private fun refreshFromRemote()= flow<Unit> {
+        val userResponse = getUsersFromServer()
+        if (userResponse.isSuccess){
+            userResponse.data?.forEach {
+                if (it.id!=null){
+                    val entity =it.toEntity()
+                    insertUserInLocal(entity)
+                }
+            }
+            emit(Unit)
+        }else{
+            throw Exception("User Response is not successful")
+        }
+    }
+
+    override fun getBlockedUsers(): List<String>? {
+        //return apiService.getBlockedUsers() //real scenario
+        return listOf(realResponse.data?.get(1)?.id!!)
     }
 
     override suspend fun insertUserInLocal(userEntity: UserEntity) {

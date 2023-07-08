@@ -14,6 +14,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.util.UUID
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 
 class UserListingUseCaseTest{
@@ -31,7 +32,7 @@ class UserListingUseCaseTest{
     }
 
     @Test
-    fun `userlistingusecase should add data into local_db coming from server`()= runBlocking{
+    fun `userlistingusecase data should not include blocked user`()= runBlocking{
         //add dummy server response
         val userDataList = listOf(
             UserDataModel(
@@ -61,53 +62,17 @@ class UserListingUseCaseTest{
             )
         )
 
+        val blockedUserId=userDataList[1].id!!
+        userRepo.setDummyBlockedUser(listOf(blockedUserId))
         userListingUseCase().test {
             val result =awaitItem() //wait for flow emition
             cancelAndIgnoreRemainingEvents()
-            //comparing emited item is same as response data, this ensure response to entity mapping is working fine
-            assertEquals(userDataList.toEntity(),result)
-            //checking all data inserted into db, coming from response
-            userDataList.forEach {
-                assertEquals(
-                    it.toEntity(),userRepo.getUsersFromLocal().find { userEntity -> userEntity.id==it.id }
-                )
-            }
+            assertTrue(result?.find { it.id== blockedUserId}==null)
 
         }
     }
 
-    @Test
-    fun `userlistingusecase should not add data into local_db if id is null of user data coming from server`()= runBlocking{
-        //add dummy server response
-        val userDataList = listOf(
-            UserDataModel(
-                id = null, //making id field null
-                name = "Name",
-                age = 22,
-                address = "123 block",
-                photoUrl = "url",
-                createdAt = -1,
-                modifiedAt = -1
-            )
-        )
-        userRepo.setDummyUserResponse(
-            UserResponse(
-                isSuccess = true,
-                cursor = "",
-                data = userDataList
-            )
-        )
 
-        userListingUseCase().test {
-            val result =awaitItem() //wait for flow emition
-            cancelAndIgnoreRemainingEvents()
-            //emited item should be empty list, as we have only one data in response and the id is null
-            assertEquals(emptyList(),result)
-            //local db should db empty, as if id is null data should not be inserted
-            assertEquals(emptyList(),userRepo.getUsersFromLocal())
-
-        }
-    }
 
     @Test
     fun `userlistingusecase should emit null if no successful response`()= runBlocking{
@@ -120,13 +85,13 @@ class UserListingUseCaseTest{
             )
         )
 
+        userRepo.setDummyBlockedUser(null)
+
         userListingUseCase().test {
             val result =awaitItem() //wait for flow emition
             cancelAndIgnoreRemainingEvents()
             //emited item should be null, as  as response is not successful
             assertEquals(null,result)
-            //local db should db empty, as response is not successful
-            assertEquals(emptyList(),userRepo.getUsersFromLocal())
 
         }
     }

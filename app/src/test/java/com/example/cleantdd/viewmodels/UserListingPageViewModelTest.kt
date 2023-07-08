@@ -57,8 +57,8 @@ class UserListingPageViewModelTest{
             ),
         )
         userRepo.insertUserInLocal(userDataList[0])
-        userListingPageViewModel.uiStates.test(timeout = 40.seconds) {
-            userListingPageViewModel.fetchUserListing()
+        userListingPageViewModel.uiStates.test {
+            userListingPageViewModel.refreshUserListingData()
             awaitItem() //ignoring first emition, it will be LOADING
             val result =  awaitItem()
 
@@ -80,8 +80,8 @@ class UserListingPageViewModelTest{
             )
         )
 
-        userListingPageViewModel.uiStates.test(timeout = 40.seconds) {
-            userListingPageViewModel.fetchUserListing()
+        userListingPageViewModel.uiStates.test {
+            userListingPageViewModel.refreshUserListingData()
             awaitItem() //ignoring first emition, it will be LOADING
             val result =  awaitItem()
 
@@ -102,7 +102,9 @@ class UserListingPageViewModelTest{
             )
         )
 
-        userListingPageViewModel.showError.test(timeout = 40.seconds) {
+        userRepo.setDummyBlockedUser(null) //to throw error in usecase
+
+        userListingPageViewModel.showError.test(timeout = 10.seconds) {
             userListingPageViewModel.refreshUserListingData()
             awaitItem() //ignoring first emition, it will be false as default value
             val result =  awaitItem()
