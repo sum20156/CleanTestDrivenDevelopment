@@ -54,21 +54,18 @@ class UserListingUseCaseTest{
                 modifiedAt = -1
             )
         )
-        userRepo.setDummyUserResponse(
-            UserResponse(
-                isSuccess = true,
-                cursor = "",
-                data = userDataList
-            )
-        )
 
+        userDataList.toEntity().forEach {
+            userRepo.insertUserInLocal(it)
+        }
         val blockedUserId=userDataList[1].id!!
         userRepo.setDummyBlockedUser(listOf(blockedUserId))
+
         userListingUseCase().test {
             val result =awaitItem() //wait for flow emition
+            println("result:"+result)
             cancelAndIgnoreRemainingEvents()
             assertTrue(result?.find { it.id== blockedUserId}==null)
-
         }
     }
 
@@ -77,13 +74,7 @@ class UserListingUseCaseTest{
     @Test
     fun `userlistingusecase should emit null if no successful response`()= runBlocking{
         //add dummy server response
-        userRepo.setDummyUserResponse(
-            UserResponse(
-                isSuccess = false,
-                cursor = "",
-                data = null
-            )
-        )
+
 
         userRepo.setDummyBlockedUser(null)
 
@@ -94,6 +85,7 @@ class UserListingUseCaseTest{
             assertEquals(null,result)
 
         }
+
     }
 
 

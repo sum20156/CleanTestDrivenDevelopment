@@ -19,7 +19,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class UserListingPageViewModel @Inject constructor(
-    private val userRepo: UserRepo,
     private val userListingUseCase: UserListingUseCase
 ) : ViewModel() {
 

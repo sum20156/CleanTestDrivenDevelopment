@@ -32,7 +32,7 @@ class UserListingPageViewModelTest{
     fun setup(){
         userRepo = FakeUserRepo()
         userListingUseCase = UserListingUseCase(userRepo)
-        userListingPageViewModel = UserListingPageViewModel(userRepo,userListingUseCase)
+        userListingPageViewModel = UserListingPageViewModel(userListingUseCase)
     }
 
     @Test
@@ -57,6 +57,7 @@ class UserListingPageViewModelTest{
             ),
         )
         userRepo.insertUserInLocal(userDataList[0])
+
         userListingPageViewModel.uiStates.test {
             userListingPageViewModel.refreshUserListingData()
             awaitItem() //ignoring first emition, it will be LOADING
@@ -72,13 +73,6 @@ class UserListingPageViewModelTest{
     @Test
     fun `uistate should be emptystate if there is not data came from server and no data in local db`()= runBlocking{
         //add dummy server response
-        userRepo.setDummyUserResponse(
-            UserResponse(
-                isSuccess = true,
-                cursor = "",
-                data = emptyList()
-            )
-        )
 
         userListingPageViewModel.uiStates.test {
             userListingPageViewModel.refreshUserListingData()
@@ -93,14 +87,7 @@ class UserListingPageViewModelTest{
 
     @Test
     fun `showerror should be true if something goes wrong while fetching data from server and no data in db`()= runBlocking{
-        //add dummy server response
-        userRepo.setDummyUserResponse(
-            UserResponse(
-                isSuccess = false, //to throw exception
-                cursor = "",
-                data = null
-            )
-        )
+
 
         userRepo.setDummyBlockedUser(null) //to throw error in usecase
 
